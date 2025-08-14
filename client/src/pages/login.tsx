@@ -60,17 +60,24 @@ export default function Login() {
     },
     onError: (error: any) => {
       let errorMessage = "Could not create account. Please try again.";
-      try {
-        const errorParts = error.message.split(': ');
-        if (errorParts.length > 1) {
-          const jsonString = errorParts.slice(1).join(': ');
-          const errorData = JSON.parse(jsonString);
-          if (errorData.message) {
-            errorMessage = errorData.message;
+      if (typeof error.message === 'string') {
+        try {
+          const errorParts = error.message.split(': ');
+          if (errorParts.length > 1) {
+            const jsonString = errorParts.slice(1).join(': ');
+            const errorData = JSON.parse(jsonString);
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } else if (error.message.toLowerCase().includes("not found")) {
+            errorMessage = "API endpoint not found. Please ensure the backend server is running and accessible.";
+          } else {
+            errorMessage = error.message; // Use the raw message if it's not a JSON string
           }
+        } catch (parseError) {
+          console.error("Failed to parse error message:", parseError);
+          errorMessage = error.message; // Fallback to raw message if parsing fails
         }
-      } catch (parseError) {
-        console.error("Failed to parse error message:", parseError);
       }
       toast({
         title: "Registration failed",
