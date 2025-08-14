@@ -88,6 +88,10 @@ export class MemStorage implements IStorage {
     const newSession: Session = {
       id: randomUUID(),
       ...session,
+      endTime: session.endTime || null,
+      completed: session.completed || false,
+      distractions: session.distractions || [],
+      taskId: session.taskId || null,
     };
     
     this.sessions.set(newSession.id, newSession);
@@ -125,6 +129,11 @@ export class MemStorage implements IStorage {
     const newTask: Task = {
       id: randomUUID(),
       ...task,
+      description: task.description || null,
+      status: task.status || 'todo',
+      priority: task.priority || 'medium',
+      estimatedSessions: task.estimatedSessions || 1,
+      completedSessions: task.completedSessions || 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

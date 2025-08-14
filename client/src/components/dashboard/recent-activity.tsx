@@ -69,8 +69,8 @@ export function RecentActivity() {
         <div className="space-y-3">
           {recentSessions.length > 0 ? (
             recentSessions.map((session) => {
-              const SessionIcon = getSessionIcon(session.type, session.completed);
-              const sessionColor = getSessionColor(session.type, session.completed);
+              const SessionIcon = getSessionIcon(session.type, session.completed || false);
+              const sessionColor = getSessionColor(session.type, session.completed || false);
               
               return (
                 <div key={session.id} className="flex items-center space-x-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">

@@ -19,7 +19,7 @@ export function useTimer() {
   const { playBell } = useAudio();
   const { toast } = useToast();
 
-  const { data: activeSession } = useQuery({
+  const { data: activeSession } = useQuery<Session | null>({
     queryKey: ['/api/sessions/active'],
     refetchInterval: isRunning ? 1000 : false,
   });
@@ -77,7 +77,7 @@ export function useTimer() {
     setIsRunning(false);
     playBell();
     
-    if (activeSession?.id) {
+    if (activeSession && 'id' in activeSession) {
       updateSessionMutation.mutate({
         id: activeSession.id,
         completed: true,
@@ -141,7 +141,7 @@ export function useTimer() {
     setIsRunning(false);
     setTimeRemaining(sessionDuration * 60);
     
-    if (activeSession?.id) {
+    if (activeSession && 'id' in activeSession) {
       updateSessionMutation.mutate({
         id: activeSession.id,
         completed: false,

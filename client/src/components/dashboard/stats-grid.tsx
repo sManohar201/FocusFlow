@@ -9,13 +9,13 @@ export function StatsGrid() {
   const statItems = [
     {
       icon: Clock,
-      value: stats ? `${stats.totalHours.toFixed(1)}h` : "0h",
+      value: stats ? `${(stats as any).totalHours?.toFixed(1) || 0}h` : "0h",
       label: "Hours This Week",
       color: "bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
     },
     {
       icon: Target,
-      value: stats ? `${Math.round(stats.completionRate)}%` : "0%",
+      value: stats ? `${Math.round((stats as any).completionRate || 0)}%` : "0%",
       label: "Completion Rate",
       color: "bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400",
     },
