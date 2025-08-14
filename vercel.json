@@ -2,32 +2,26 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "npm run build",
+        "buildCommand": "cd .. && npm run build:client",
         "distDir": "client/dist"
       }
     },
     {
-      "src": "api/[...slug].ts",
+      "src": "api/index.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/[...slug]"
+      "dest": "/api/index.ts"
     },
     {
-      "src": "/((?!api/|.*\\..*).*)",
+      "src": "/(.*)",
       "dest": "/index.html"
-    },
-    {
-      "src": "/assets/(.*)",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
     }
   ]
 }
