@@ -5,8 +5,8 @@ import express from "express";
 import session from "express-session";
 import pg from "pg";
 import connectPgSimple from "connect-pg-simple";
-import { storage } from "../db/storage"; // Adjust path as needed
-import { insertUserSchema, insertSessionSchema, insertTaskSchema, insertDistractionSchema } from "@shared/schema";
+import { storage } from "../db/storage.ts"; // Adjust path as needed
+import { insertUserSchema, insertSessionSchema, insertTaskSchema, insertDistractionSchema } from "@shared/schema.ts"; // Adjust path as needed
 
 const app = express();
 
