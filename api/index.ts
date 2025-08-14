@@ -1,18 +1,44 @@
-import type { Express, Request } from "express";
-import { createServer, type Server } from "http";
-import { storage } from "./storage";
+
+import express from "express";
+import session from "express-session";
+import pg from "pg";
+import connectPgSimple from "connect-pg-simple";
+import { storage } from "../server/storage"; // Adjust path as needed
 import { insertUserSchema, insertSessionSchema, insertTaskSchema, insertDistractionSchema } from "@shared/schema";
-import { z } from "zod";
 
-declare module 'express-session' {
-  interface SessionData {
-    userId?: string;
-  }
-}
+const app = express();
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth routes
-  app.post("/api/auth/register", async (req, res) => {
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// Session configuration
+const pgPool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const PgStore = connectPgSimple(session);
+
+app.use(
+  session({
+    store: new PgStore({
+      pool: pgPool,
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET || "a-very-strong-secret-that-is-at-least-32-characters-long",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    },
+  })
+);
+
+// All your routes from server/routes.ts go here
+// Auth routes
+app.post("/api/auth/register", async (req, res) => {
     try {
 
       const userData = insertUserSchema.parse(req.body);
@@ -257,7 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const userId = req.session.userId;
-      const year = parseInt(req.query.year as string) || new Date().getFullYear();
+      const year = parseInt(.query.year as string) || new Date().getFullYear();
       const heatmapData = await storage.getHeatmapData(userId, year);
       res.json(heatmapData);
     } catch (error) {
@@ -265,6 +291,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
-}
+
+// Export the app instance for Vercel
+export default app;
