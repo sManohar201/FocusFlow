@@ -1,5 +1,7 @@
 import { type User, type Session, type Task, type Distraction, type InsertUser, type InsertSession, type InsertTask, type InsertDistraction, type TimerSettings, type SessionStats } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, gte, lte, sql, and, desc } from "drizzle-orm";
+import { users, sessions, tasks, distractions } from "@shared/schema";
 import bcrypt from "bcryptjs";
 
 export interface IStorage {
@@ -33,51 +35,37 @@ export interface IStorage {
   verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private sessions: Map<string, Session>;
-  private tasks: Map<string, Task>;
-  private distractions: Map<string, Distraction>;
-
-  constructor() {
-    this.users = new Map();
-    this.sessions = new Map();
-    this.tasks = new Map();
-    this.distractions = new Map();
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
   }
 
   async getUserById(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async createUser(userData: { email: string; firstName?: string; lastName?: string; password: string }): Promise<User> {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     
-    const user: User = {
-      id: randomUUID(),
+    const [user] = await db.insert(users).values({
       email: userData.email,
-      firstName: userData.firstName || null,
-      lastName: userData.lastName || null,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
       passwordHash: hashedPassword,
       settings: {},
-      createdAt: new Date(),
-    };
+    }).returning();
     
-    this.users.set(user.id, user);
     return user;
   }
 
   async updateUserSettings(userId: string, settings: Partial<TimerSettings>): Promise<User | undefined> {
-    const user = this.users.get(userId);
-    if (!user) return undefined;
-    
-    const updatedUser = { ...user, settings };
-    this.users.set(userId, updatedUser);
-    return updatedUser;
+    const [user] = await db.update(users)
+      .set({ settings })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
   }
 
   async verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
@@ -85,101 +73,88 @@ export class MemStorage implements IStorage {
   }
 
   async createSession(session: Omit<InsertSession, 'id'>): Promise<Session> {
-    const newSession: Session = {
-      id: randomUUID(),
-      ...session,
-      endTime: session.endTime || null,
-      completed: session.completed || false,
-      distractions: session.distractions || [],
-      taskId: session.taskId || null,
-    };
-    
-    this.sessions.set(newSession.id, newSession);
+    const [newSession] = await db.insert(sessions).values(session).returning();
     return newSession;
   }
 
   async updateSession(sessionId: string, updates: Partial<Session>): Promise<Session | undefined> {
-    const session = this.sessions.get(sessionId);
-    if (!session) return undefined;
-    
-    const updatedSession = { ...session, ...updates };
-    this.sessions.set(sessionId, updatedSession);
-    return updatedSession;
+    const [session] = await db.update(sessions)
+      .set(updates)
+      .where(eq(sessions.id, sessionId))
+      .returning();
+    return session;
   }
 
   async getSessionsByUser(userId: string, startDate?: Date, endDate?: Date): Promise<Session[]> {
-    let userSessions = Array.from(this.sessions.values()).filter(s => s.userId === userId);
-    
+    const conditions = [eq(sessions.userId, userId)];
+
     if (startDate && endDate) {
-      userSessions = userSessions.filter(s => 
-        s.startTime >= startDate && s.startTime <= endDate
-      );
+      conditions.push(gte(sessions.startTime, startDate));
+      conditions.push(lte(sessions.startTime, endDate));
     }
-    
-    return userSessions.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+
+    return db.select().from(sessions)
+      .where(and(...conditions))
+      .orderBy(desc(sessions.startTime));
   }
 
   async getActiveSession(userId: string): Promise<Session | undefined> {
-    return Array.from(this.sessions.values())
-      .filter(s => s.userId === userId && !s.completed)
-      .sort((a, b) => b.startTime.getTime() - a.startTime.getTime())[0];
+    const [session] = await db.select()
+      .from(sessions)
+      .where(and(
+        eq(sessions.userId, userId),
+        eq(sessions.completed, false)
+      ))
+      .orderBy(desc(sessions.startTime))
+      .limit(1);
+    return session;
   }
 
   async createTask(task: Omit<InsertTask, 'id'>): Promise<Task> {
-    const newTask: Task = {
-      id: randomUUID(),
-      ...task,
-      description: task.description || null,
-      status: task.status || 'todo',
-      priority: task.priority || 'medium',
-      estimatedSessions: task.estimatedSessions || 1,
-      completedSessions: task.completedSessions || 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    this.tasks.set(newTask.id, newTask);
+    const [newTask] = await db.insert(tasks).values(task).returning();
     return newTask;
   }
 
   async updateTask(taskId: string, updates: Partial<Task>): Promise<Task | undefined> {
-    const task = this.tasks.get(taskId);
-    if (!task) return undefined;
-    
-    const updatedTask = { ...task, ...updates, updatedAt: new Date() };
-    this.tasks.set(taskId, updatedTask);
-    return updatedTask;
+    const [task] = await db.update(tasks)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(tasks.id, taskId))
+      .returning();
+    return task;
   }
 
   async deleteTask(taskId: string): Promise<boolean> {
-    return this.tasks.delete(taskId);
+    const result = await db.delete(tasks).where(eq(tasks.id, taskId));
+    return (result.rowCount || 0) > 0;
   }
 
   async getTasksByUser(userId: string): Promise<Task[]> {
-    return Array.from(this.tasks.values())
-      .filter(t => t.userId === userId)
-      .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime());
+    return db.select().from(tasks)
+      .where(eq(tasks.userId, userId))
+      .orderBy(desc(tasks.createdAt));
   }
 
   async createDistraction(distraction: Omit<InsertDistraction, 'id'>): Promise<Distraction> {
-    const newDistraction: Distraction = {
-      id: randomUUID(),
-      ...distraction,
-      timestamp: new Date(),
-    };
-    
-    this.distractions.set(newDistraction.id, newDistraction);
+    const [newDistraction] = await db.insert(distractions).values(distraction).returning();
     return newDistraction;
   }
 
   async getDistractionsBySession(sessionId: string): Promise<Distraction[]> {
-    return Array.from(this.distractions.values())
-      .filter(d => d.sessionId === sessionId)
-      .sort((a, b) => b.timestamp!.getTime() - a.timestamp!.getTime());
+    return db.select().from(distractions)
+      .where(eq(distractions.sessionId, sessionId))
+      .orderBy(desc(distractions.timestamp));
   }
 
   async getSessionStats(userId: string, startDate?: Date, endDate?: Date): Promise<SessionStats> {
-    const allSessions = await this.getSessionsByUser(userId, startDate, endDate);
+    const conditions = [eq(sessions.userId, userId)];
+
+    if (startDate && endDate) {
+      conditions.push(gte(sessions.startTime, startDate));
+      conditions.push(lte(sessions.startTime, endDate));
+    }
+
+    const allSessions = await db.select().from(sessions)
+      .where(and(...conditions));
     const completedSessions = allSessions.filter(s => s.completed);
 
     return {
@@ -198,12 +173,18 @@ export class MemStorage implements IStorage {
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year + 1, 0, 1);
 
-    const userSessions = await this.getSessionsByUser(userId, startDate, endDate);
-    const completedSessions = userSessions.filter(s => s.completed);
+    const userSessions = await db.select()
+      .from(sessions)
+      .where(and(
+        eq(sessions.userId, userId),
+        gte(sessions.startTime, startDate),
+        lte(sessions.startTime, endDate),
+        eq(sessions.completed, true)
+      ));
 
     const heatmapData: Record<string, number> = {};
     
-    completedSessions.forEach((session: Session) => {
+    userSessions.forEach((session: Session) => {
       const date = session.startTime.toISOString().split('T')[0];
       heatmapData[date] = (heatmapData[date] || 0) + 1;
     });
@@ -212,4 +193,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
