@@ -2,8 +2,13 @@
   "version": 2,
   "builds": [
     {
-      "src": "client/**",
-      "use": "@vercel/static"
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm run build:client",
+        "distDir": "client/dist",
+        "outputDirectory": "client/dist"
+      }
     },
     {
       "src": "pages/api/**/*.ts",
@@ -12,24 +17,26 @@
   ],
   "routes": [
     {
-      "src": "/api/auth/login",
-      "dest": "/pages/api/auth/login"
-    },
-    {
-      "src": "/api/auth/register",
-      "dest": "/pages/api/auth/register"
-    },
-    {
-      "src": "/api/auth/me",
-      "dest": "/pages/api/auth/me"
+      "src": "/api/auth/(.*)",
+      "dest": "/pages/api/auth/$1"
     },
     {
       "src": "/api/(.*)",
       "dest": "/pages/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/client/$1"
+      "src": "^/assets/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/index.html"
     }
   ],
   "env": {

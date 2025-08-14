@@ -9,7 +9,13 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   root: "client",
   build: {
-    outDir: "dist"
+    outDir: "dist",
+    assetsDir: "assets",
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
   },
   plugins: [react()],
   resolve: {
