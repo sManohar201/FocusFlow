@@ -17,6 +17,21 @@
   ],
   "routes": [
     {
+      "src": "/api/auth/login",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/pages/api/auth/login"
+    },
+    {
+      "src": "/api/auth/register",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/pages/api/auth/register"
+    },
+    {
+      "src": "/api/auth/me",
+      "methods": ["GET", "OPTIONS"],
+      "dest": "/pages/api/auth/me"
+    },
+    {
       "src": "/api/auth/(.*)",
       "dest": "/pages/api/auth/$1"
     },
@@ -37,6 +52,17 @@
     {
       "src": "/.*",
       "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
+      ]
     }
   ],
   "env": {
