@@ -5,7 +5,8 @@ export function ActivityHeatmap() {
   const [selectedYear] = useState(new Date().getFullYear());
   
   const { data: heatmapData } = useQuery({
-    queryKey: ['/api/analytics/heatmap', selectedYear],
+    queryKey: ['heatmapData', selectedYear],
+    queryFn: () => apiRequest('GET', `/api/analytics/heatmap?year=${selectedYear}`),
   });
 
   const months = [

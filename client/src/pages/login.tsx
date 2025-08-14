@@ -58,10 +58,23 @@ export default function Login() {
       });
       setLocation("/");
     },
-    onError: () => {
+    onError: (error: any) => {
+      let errorMessage = "Could not create account. Please try again.";
+      try {
+        const errorParts = error.message.split(': ');
+        if (errorParts.length > 1) {
+          const jsonString = errorParts.slice(1).join(': ');
+          const errorData = JSON.parse(jsonString);
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        }
+      } catch (parseError) {
+        console.error("Failed to parse error message:", parseError);
+      }
       toast({
         title: "Registration failed",
-        description: "Could not create account. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
