@@ -1,9 +1,11 @@
 
+import "dotenv/config";
+
 import express from "express";
 import session from "express-session";
 import pg from "pg";
 import connectPgSimple from "connect-pg-simple";
-import { storage } from "../server/storage"; // Adjust path as needed
+import { storage } from "../db/storage"; // Adjust path as needed
 import { insertUserSchema, insertSessionSchema, insertTaskSchema, insertDistractionSchema } from "@shared/schema";
 
 const app = express();
@@ -283,7 +285,7 @@ app.post("/api/auth/register", async (req, res) => {
       }
       
       const userId = req.session.userId;
-      const year = parseInt(.query.year as string) || new Date().getFullYear();
+            const year = parseInt(req.query.year as string) || new Date().getFullYear();
       const heatmapData = await storage.getHeatmapData(userId, year);
       res.json(heatmapData);
     } catch (error) {
