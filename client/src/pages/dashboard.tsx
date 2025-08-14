@@ -7,12 +7,37 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useLocation } from "wouter";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const logoutMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/auth/logout', {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.clear();
+      toast({
+        title: "Logged out",
+        description: "See you next time!",
+      });
+      setLocation("/login");
+    },
+    onError: () => {
+      toast({
+        title: "Logout failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
   
   const handleLogout = () => {
-    setLocation("/login");
+    logoutMutation.mutate();
   };
   
   return (
@@ -31,9 +56,10 @@ export default function Dashboard() {
               variant="outline" 
               size="sm"
               onClick={handleLogout}
+              disabled={logoutMutation.isPending}
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Logout
+              {logoutMutation.isPending ? "Logging out..." : "Logout"}
             </Button>
           </div>
         </div>

@@ -1,13 +1,20 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertSessionSchema, insertTaskSchema, insertDistractionSchema } from "@shared/schema";
 import { z } from "zod";
 
+declare module 'express-session' {
+  interface SessionData {
+    userId?: string;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
+
       const userData = insertUserSchema.parse(req.body);
       const existingUser = await storage.getUserByEmail(userData.email);
       
@@ -21,6 +28,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: userData.lastName || undefined,
         password: userData.password,
       });
+      
+      // Set session (with proper session check)
+      if (req.session) {
+        req.session.userId = user.id;
+      }
       
       const { passwordHash, ...userWithoutPassword } = user;
       res.json({ user: userWithoutPassword });
@@ -38,31 +50,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
+      // Set session (with proper session check)
+      if (req.session) {
+        req.session.userId = user.id;
+      }
+      
       const { passwordHash, ...userWithoutPassword } = user;
       res.json({ user: userWithoutPassword });
     } catch (error) {
+      console.error('Login error:', error);
       res.status(400).json({ message: "Login failed" });
     }
   });
 
   app.get("/api/auth/me", async (req, res) => {
-    // Mock authenticated user for development
-    const mockUser = {
-      id: "mock-user-id",
-      email: "john@example.com",
-      firstName: "John",
-      lastName: "Smith",
-      settings: {},
-      createdAt: new Date(),
-    };
-    res.json({ user: mockUser });
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const user = await storage.getUserById(req.session.userId);
+      if (!user) {
+        req.session.destroy((err: any) => {});
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      const { passwordHash, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      res.status(500).json({ message: "Authentication check failed" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err: any) => {
+      if (err) {
+        console.error('Logout error:', err);
+        return res.status(500).json({ message: 'Logout failed' });
+      }
+      res.clearCookie('connect.sid');
+      res.json({ message: 'Logged out successfully' });
+    });
   });
 
   // Session routes
   app.post("/api/sessions", async (req, res) => {
     try {
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
       const sessionData = insertSessionSchema.parse(req.body);
-      sessionData.userId = "mock-user-id"; // Use mock user for development
+      sessionData.userId = req.session.userId;
       const session = await storage.createSession(sessionData);
       res.json(session);
     } catch (error) {
@@ -88,7 +127,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/sessions", async (req, res) => {
     try {
-      const userId = "mock-user-id"; // Use mock user for development
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const userId = req.session.userId;
       const sessions = await storage.getSessionsByUser(userId);
       res.json(sessions);
     } catch (error) {
@@ -98,7 +141,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/sessions/active", async (req, res) => {
     try {
-      const userId = "mock-user-id"; // Use mock user for development
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const userId = req.session.userId;
       const session = await storage.getActiveSession(userId);
       res.json(session || null);
     } catch (error) {
@@ -109,8 +156,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Task routes
   app.post("/api/tasks", async (req, res) => {
     try {
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
       const taskData = insertTaskSchema.parse(req.body);
-      taskData.userId = "mock-user-id"; // Use mock user for development
+      taskData.userId = req.session.userId;
       const task = await storage.createTask(taskData);
       res.json(task);
     } catch (error) {
@@ -151,7 +202,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tasks", async (req, res) => {
     try {
-      const userId = "mock-user-id"; // Use mock user for development
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const userId = req.session.userId;
       const tasks = await storage.getTasksByUser(userId);
       res.json(tasks);
     } catch (error) {
@@ -183,7 +238,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics routes
   app.get("/api/analytics/stats", async (req, res) => {
     try {
-      const userId = "mock-user-id"; // Use mock user for development
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const userId = req.session.userId;
       const stats = await storage.getSessionStats(userId);
       res.json(stats);
     } catch (error) {
@@ -193,7 +252,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/analytics/heatmap", async (req, res) => {
     try {
-      const userId = "mock-user-id"; // Use mock user for development
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const userId = req.session.userId;
       const year = parseInt(req.query.year as string) || new Date().getFullYear();
       const heatmapData = await storage.getHeatmapData(userId, year);
       res.json(heatmapData);
