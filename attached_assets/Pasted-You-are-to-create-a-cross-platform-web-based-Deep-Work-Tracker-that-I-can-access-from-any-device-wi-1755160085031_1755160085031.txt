@@ -1,0 +1,92 @@
+You are to create a cross-platform, web-based Deep Work Tracker that I can access from any device with an internet connection, hosted for free on Replit.
+
+Tech Stack:
+
+Frontend: React + Tailwind CSS + HeadlessUI + Heroicons + Framer Motion
+
+Backend: Node.js + Express (if needed)
+
+Database: Free solution (e.g., Replit Database or localStorage for small data)
+
+Authentication: Simple passcode-protected login (no email signup)
+
+Hosting: Free on Replit
+
+Core Features:
+1. Deep Work Timer (Pomodoro-Style)
+
+Two preset modes:
+
+4 × 30 min sessions with adjustable break intervals
+
+4 × 50 min sessions with adjustable break intervals
+
+Allow custom session length and break length per user preference.
+
+Simple bell chime sound when session or break ends.
+
+2. Productivity Tracker (GitHub-Style Heatmap)
+
+Track number of deep work sessions per day.
+
+Show year-long view in GitHub contribution graph style (like the image provided).
+
+Each block represents the count of sessions that day, with a green gradient based on volume.
+
+Store data persistently (Replit DB or localStorage) so it syncs across devices for the same user/passcode.
+
+3. Distraction Logging
+
+During/after each session, allow the user to log distractions (simple text input).
+
+Highlight distraction-free sessions with higher weight in productivity statistics.
+
+4. Statistics Dashboard
+
+Show daily, weekly, and monthly summaries:
+
+Total hours worked.
+
+Session completion rate.
+
+Distraction-free session percentage.
+
+Best productivity day and hour of the day.
+
+5. Kanban Task Tracker (Optional Bonus)
+
+Simple Kanban board with drag-and-drop columns: "To Do", "In Progress", "Done".
+
+Each task can be linked to a deep work session.
+
+Store tasks persistently (Replit DB or localStorage).
+
+Design & UI Requirements:
+
+Modern, minimal, dark/light mode toggle.
+
+Smooth animations for timers, modals, and stats using Framer Motion.
+
+Use TailwindCSS + HeadlessUI for components like modals, dropdowns, date pickers.
+
+Use Heroicons for intuitive icons.
+
+Mobile-friendly, responsive layout.
+
+Functionality & Sync
+
+Local timezone for all time calculations.
+
+All session data synced across devices for the same passcode (via Replit DB).
+
+No export needed, just persistent storage.
+
+Additional Notes:
+
+Keep the code modular and clean for future feature additions.
+
+Default sound: simple bell chime (HTML5 audio).
+
+Default timer mode: 4 × 50 min with 10 min breaks (user can change).
+
+Goal: Build a sleek, fast, distraction-free Deep Work Tracker with Pomodoro-style timing, GitHub-style productivity heatmap, distraction logging, statistics, and a Kanban task board — all accessible from any device, free-hosted on Replit.
