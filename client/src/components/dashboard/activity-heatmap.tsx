@@ -5,8 +5,7 @@ export function ActivityHeatmap() {
   const [selectedYear] = useState(new Date().getFullYear());
   
   const { data: heatmapData } = useQuery({
-    queryKey: ['/api/analytics/heatmap'],
-    queryParams: { year: selectedYear },
+    queryKey: ['/api/analytics/heatmap', selectedYear],
   });
 
   const months = [
@@ -33,7 +32,7 @@ export function ActivityHeatmap() {
         if (currentDate >= endDate) break;
         
         const dateString = currentDate.toISOString().split('T')[0];
-        const sessionCount = heatmapData?.[dateString] || 0;
+        const sessionCount = (heatmapData as Record<string, number>)?.[dateString] || 0;
         
         grid.push({
           date: dateString,

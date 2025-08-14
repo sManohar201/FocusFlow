@@ -4,6 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap } from "lucide-react";
 import { useLocation } from "wouter";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -14,11 +17,62 @@ export default function Login() {
     firstName: "",
     lastName: "",
   });
+  const { toast } = useToast();
+
+  const loginMutation = useMutation({
+    mutationFn: (data: { email: string; password: string }) =>
+      apiRequest('POST', '/api/auth/login', data),
+    onSuccess: () => {
+      toast({
+        title: "Welcome back!",
+        description: "Successfully logged in",
+      });
+      setLocation("/");
+    },
+    onError: () => {
+      toast({
+        title: "Login failed",
+        description: "Invalid email or password",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: (data: { email: string; password: string; firstName?: string; lastName?: string }) =>
+      apiRequest('POST', '/api/auth/register', data),
+    onSuccess: () => {
+      toast({
+        title: "Account created!",
+        description: "Welcome to FocusFlow",
+      });
+      setLocation("/");
+    },
+    onError: () => {
+      toast({
+        title: "Registration failed",
+        description: "Could not create account. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // For development, just redirect to dashboard
-    setLocation("/");
+    
+    if (isLogin) {
+      loginMutation.mutate({
+        email: formData.email,
+        password: formData.password,
+      });
+    } else {
+      registerMutation.mutate({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName || undefined,
+        lastName: formData.lastName || undefined,
+      });
+    }
   };
 
   return (
@@ -69,8 +123,15 @@ export default function Login() {
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
             />
-            <Button type="submit" className="w-full">
-              {isLogin ? "Sign In" : "Create Account"}
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={loginMutation.isPending || registerMutation.isPending}
+            >
+              {(loginMutation.isPending || registerMutation.isPending) 
+                ? "Please wait..." 
+                : (isLogin ? "Sign In" : "Create Account")
+              }
             </Button>
           </form>
           

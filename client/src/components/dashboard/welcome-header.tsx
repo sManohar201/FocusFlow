@@ -28,19 +28,19 @@ export function WelcomeHeader() {
         <div className="flex items-center space-x-6">
           <div className="text-center">
             <div className="text-2xl font-bold text-primary">
-              {stats?.totalSessions || 0}
+              {(stats as any)?.totalSessions || 0}
             </div>
             <div className="text-sm text-muted-foreground">Today</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-500">
-              {Math.round((stats?.totalHours || 0) * 7)} {/* Rough weekly estimate */}
+              {Math.round(((stats as any)?.totalHours || 0) * 7)} {/* Rough weekly estimate */}
             </div>
             <div className="text-sm text-muted-foreground">This Week</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-orange-500">
-              {stats?.currentStreak || 0}
+              {(stats as any)?.currentStreak || 0}
             </div>
             <div className="text-sm text-muted-foreground">Day Streak</div>
           </div>

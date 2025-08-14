@@ -49,6 +49,10 @@ export const distractions = pgTable("distractions", {
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+}).extend({
+  password: z.string().min(6),
+}).omit({
+  passwordHash: true,
 });
 
 export const insertSessionSchema = createInsertSchema(sessions).omit({
