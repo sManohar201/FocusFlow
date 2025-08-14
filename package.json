@@ -7,12 +7,9 @@
     "dev": "concurrently \"npm:dev:api\" \"npm:dev:client\"",
     "dev:api": "tsx watch api/index.ts",
     "dev:client": "vite client --host",
-    "build": "npm run build:client && npm run build:api",
+    "build": "npm run build:client",
     "build:client": "vite build client",
-    "build:api": "tsc --project tsconfig.api.json",
-    "start": "NODE_ENV=production tsx api/index.ts",
     "check": "tsc",
-    "check:api": "tsc --project tsconfig.api.json --noEmit",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
