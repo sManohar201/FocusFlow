@@ -1,2 +1,6 @@
-import app from "./server"; // server.ts will contain all your routes
-export default app;
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import app from "./server";
+
+export default (req: VercelRequest, res: VercelResponse) => {
+  return app(req, res);
+};
