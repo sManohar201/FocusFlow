@@ -5,22 +5,20 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "npm run build",
+        "buildCommand": "npm run build && npm run build:api",
         "distDir": "client/dist"
-      }
-    },
-    {
-      "src": "dist/api/index.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["db/**", "shared/**"]
       }
     }
   ],
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "@vercel/node"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.ts"
+      "destination": "/api"
     },
     {
       "source": "/(.*)",

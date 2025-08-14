@@ -1,7 +1,7 @@
 import { type User, type Session, type Task, type Distraction, type InsertUser, type InsertSession, type InsertTask, type InsertDistraction, type TimerSettings, type SessionStats } from "@shared/schema.ts";
-import { db } from "./db.ts";
+import { db } from "./db";
 import { eq, gte, lte, sql, and, desc } from "drizzle-orm";
-import { users, sessions, tasks, distractions } from "@shared/schema.ts";
+import { users, sessions, tasks, distractions } from "@shared/schema";
 import bcrypt from "bcryptjs";
 
 export interface IStorage {

@@ -1,0 +1,22 @@
+{
+  "include": ["api/**/*", "shared/**/*", "db/**/*"],
+  "exclude": ["node_modules", "client/**/*", "**/*.test.ts"],
+  "compilerOptions": {
+    "outDir": "./api",
+    "rootDir": ".",
+    "module": "ESNext",
+    "target": "ES2022",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "declaration": false,
+    "sourceMap": false,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "types": ["node"],
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
+  }
+}
