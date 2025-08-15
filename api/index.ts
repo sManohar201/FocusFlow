@@ -1,7 +1,12 @@
 import app from "./server";
 
-const PORT = process.env.PORT || 3000;
-console.log(`Starting server on port ${PORT}...`);
-app.listen(PORT, () => {
-  console.log(`Local dev server running at http://localhost:${PORT}`);
-});
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Local dev server running at http://localhost:${PORT}`);
+  });
+}
+
+// For Vercel
+export default app;
