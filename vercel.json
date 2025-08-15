@@ -2,16 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "npm run build:client",
-        "distDir": "client/dist",
-        "outputDirectory": "client/dist"
+        "buildCommand": "cd client && npm install && npm run build",
+        "outputDirectory": "dist"
       }
     },
     {
-      "src": "pages/api/**/*.ts",
+      "src": "api/**/*.ts",
       "use": "@vercel/node"
     }
   ],
@@ -19,25 +18,26 @@
     {
       "src": "/api/auth/login",
       "methods": ["POST", "OPTIONS"],
-      "dest": "/pages/api/auth/login"
+      "dest": "/api/auth/login"
     },
     {
       "src": "/api/auth/register",
       "methods": ["POST", "OPTIONS"],
-      "dest": "/pages/api/auth/register"
+      "dest": "/api/auth/register"
     },
     {
       "src": "/api/auth/me",
       "methods": ["GET", "OPTIONS"],
-      "dest": "/pages/api/auth/me"
+      "dest": "/api/auth/me"
     },
     {
       "src": "/api/auth/(.*)",
-      "dest": "/pages/api/auth/$1"
+      "methods": ["GET", "POST", "OPTIONS"],
+      "dest": "/api/auth/$1"
     },
     {
       "src": "/api/(.*)",
-      "dest": "/pages/api/$1"
+      "dest": "/api/server"
     },
     {
       "src": "^/assets/(.*)",
