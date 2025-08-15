@@ -10,6 +10,7 @@
     "build": "npm run build:client && npm run build:api",
     "build:client": "vite build client",
     "build:api": "tsc --project tsconfig.api.json",
+    "vercel-build": "npm install && npm run build",
     "start": "NODE_ENV=production tsx api/index.ts",
     "check": "tsc",
     "check:api": "tsc --project tsconfig.api.json --noEmit",
