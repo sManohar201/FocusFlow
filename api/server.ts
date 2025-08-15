@@ -4,10 +4,19 @@ import express from "express";
 import session from "express-session";
 import pg from "pg";
 import connectPgSimple from "connect-pg-simple";
+import cors from "cors";
 import { storage } from "../db/storage";
 import { insertUserSchema, insertSessionSchema, insertTaskSchema, insertDistractionSchema } from "@shared/schema";
 
 const app = express();
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['X-CSRF-Token', 'X-Requested-With', 'Accept', 'Accept-Version', 'Content-Length', 'Content-MD5', 'Content-Type', 'Date', 'X-Api-Version', 'Authorization']
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
