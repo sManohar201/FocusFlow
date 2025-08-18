@@ -17,6 +17,23 @@ This is a Next.js project bootstrapped with `create-next-app`. It is a comprehen
 *   **Colors:** Primary #FF6B6B (energetic coral), Secondary #4ECDC4 (calming teal), Success #51CF66 (GitHub green), Background #FAFAFA (soft white), Text #2D3748 (charcoal), Accent #667EEA (focus purple)
 *   **Design:** Inter/Poppins fonts, card-based layout with rounded corners, responsive grid system, smooth animations, mobile-first approach with touch-friendly controls, 16px base spacing, modern glassmorphism effects for timer interface
 
+## Final MVP Plan (Logic-Focused)
+
+1.  **User Authentication (Backend Logic):**
+    *   Set up Clerk for Gmail-based authentication.
+    *   Create the necessary API routes and backend services to handle user signup and login.
+
+2.  **"Deep Work Session" Data Model:**
+    *   Design the database schema for storing "Deep Work Sessions." This will include fields for the task name, session duration, and a distraction count. We'll use Supabase for this.
+
+3.  **"Deep Work" Timer Logic:**
+    *   Implement the core timer logic (start, pause, reset) in a React component.
+    *   Create a function to increment the "distraction count" when the user logs a distraction.
+    *   Implement the logic for the chime notification at the end of the session.
+
+4.  **Deployment:**
+    *   Deploy the application to Vercel.
+
 ## Technologies
 
 *   **Framework:** [Next.js](https://nextjs.org/)
